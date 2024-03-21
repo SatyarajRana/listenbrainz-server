@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/anchor-is-valid,camelcase */
 
 import { saveAs } from "file-saver";
-import { findIndex } from "lodash";
+import { findIndex, get } from "lodash";
 import * as React from "react";
 import { createRoot } from "react-dom/client";
 
@@ -161,6 +161,7 @@ export default class PlaylistPage extends React.Component<
     }
     try {
       const jspfTrack = PlaylistPage.makeJSPFTrack(selectedTrackMetadata);
+
       await this.APIService.addPlaylistItems(
         currentUser.auth_token,
         getPlaylistId(playlist),
@@ -322,11 +323,27 @@ export default class PlaylistPage extends React.Component<
     saveAs(result, `${playlistTitle}.xspf`);
   };
 
+  getTrackDurations = async (track_ids: string[]) => {
+    const track_durations = await this.APIService.getRecordingMetadata(
+      track_ids
+    );
+    return track_durations;
+  };
+
   render() {
     const { playlist, loading } = this.state;
+
     const { APIService } = this.context;
 
     const { track: tracks } = playlist;
+    const track_ids = tracks.map((track) => track.id).filter(Boolean);
+    this.getTrackDurations(track_ids as string[]).then((track_durations) => {
+      console.log("====================================");
+      console.log("Here are the durations:");
+      console.log(track_durations);
+      console.log("====================================");
+    });
+
     const hasRightToEdit = this.hasRightToEdit();
 
     const customFields = getPlaylistExtension(playlist);
